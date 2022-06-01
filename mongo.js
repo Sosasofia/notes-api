@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
+const connection = require("./utils/config");
 
-const url = process.env.MONGODB_URI;
+const url = connection.MONGODB_URI;
 
 // MongoDB connection
 mongoose

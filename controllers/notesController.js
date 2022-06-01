@@ -1,82 +1,80 @@
 const Note = require("../models/note");
 
-
-const create = async(req, res) => {
+const create = async (req, res, next) => {
   const note = new Note({
     title: req.body.title,
-    content: req.body.content
+    content: req.body.content,
   });
-  
+
   try {
     const savedNote = await note.save();
-    res.json(savedNote);
+    res.status(201).json(savedNote);
   } catch(err) {
-    res.status(500).send({ message: err.message});
+    next(err);
   }
 };
 
-const findAll = async (req,res) => {
-  try {
-    const notes = await Note.find();
-    if (notes.length == 0) {
-      res.status(404).send({ message: "Notes not found" });
-    } else {
-      return res.status(200).send(notes);
-    }
-  } catch(err) {
-    res.status(500).send({ message: err.message });
-  }
+const findAll = async (req, res) => {
+  const notes = await Note.find();
+  res.json(notes);
 };
 
-
-const findById = async (req, res) => {
+const findById = async (req, res, next) => {
   const { id } = req.params;
+  
   try {
     const note = await Note.findById(id);
-    if (note == null) res.status(404).send({ message: "Message not found with id " + id});
-    res.json(note);
-  } catch(err) {
-    res.status(400).send({ message: err.message });
-  }
-};
-
-
-const updateById = async (req, res) => {
-  const { id } = req.params;
-  try {
-    const note = await Note.findByIdAndUpdate(id, {
-      title: req.body.title,
-      content: req.body.content
-    }, { new: true });
-    res.send({ updatedNote : note });
-  } catch(err) {
-    if (err.kind === "ObjectId") {
-      res.status(404).send({ message: "Message not found with id " + id});
+    if(note) {
+      res.status(200).send(note);
     } else {
-      res.status(500).send({ message: "Error updating message with id " + id });
+      res.status(404).end();
     }
-  } 
-};
-
-
-const deleteById = async (req, res) => {
-  const { id } = req.params;
-  try {
-    await Note.findByIdAndDelete(id);
-    res.redirect("/api/notes");
   } catch(err) {
-    res.status(500).send({ message: err.message});
+    next(err);
   }
 };
 
-const deleteAll = async (req, res) => {
+const updateById = async (req, res, next) => {
+  const { id } = req.params;
+  const { content, title } = req.body;
+
+  const newNoteInfo = {
+    title: title,
+    content: content,
+  };
+
+  try {
+    const note = await Note.findByIdAndUpdate(id, newNoteInfo, { new: true, runValidators: true });
+    res.status(201).json(note);
+  } catch(err) {
+    next(err);
+  }
+};
+
+const deleteById = async (req, res, next) => {
+  const { id } = req.params;
+  try {
+    await Note.findByIdAndRemove(id);
+    res.status(204).end();
+  } catch(err) {
+    next(err);
+  }
+};
+
+const deleteAll =  async (req, res, next) => {
   try {
     await Note.deleteMany({});
-    res.redirect("/api/notes");
+    res.status(204).end();
   } catch(err) {
-    res.status(500).send({ message : err.message });
+    next(err);
   }
 };
 
-
-module.exports = { create, findAll, updateById, findById, deleteById, deleteAll};
+module.exports = {
+  create,
+  findAll,
+  updateById,
+  findById,
+  deleteById,
+  deleteAll,
+};

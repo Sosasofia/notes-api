@@ -1,8 +1,8 @@
-PUT http://localhost:3001/api/notes/62915966b7e2d2a0e899379e HTTP/1.1
+PUT http://localhost:3001/api/notes/6291596eb7e2d2a0e89937a3 HTTP/1.1
 content-type: application/json
 
 
 {
-    "title": "test",
-    "content" : "f5" 
+    "title": "update",
+    "content" : "update content"
 }
