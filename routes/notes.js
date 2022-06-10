@@ -3,18 +3,17 @@ const router = express.Router();
 let Notes = require("../controllers/notesController");
 
 
+router.post("/", Notes.create);
 
-router.post("/notes", Notes.create);
+router.get("/", Notes.findAll);
 
-router.get("/notes", Notes.findAll);
+router.delete("/", Notes.deleteAll);
 
-router.delete("/notes", Notes.deleteAll);
+router.get("/:id", Notes.findById);
 
-router.get("/notes/:id", Notes.findById);
+router.put("/:id", Notes.updateById);
 
-router.put("/notes/:id", Notes.updateById);
-
-router.delete("/notes/:id", Notes.deleteById);
+router.delete("/:id", Notes.deleteById);
 
 
 

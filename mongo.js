@@ -3,7 +3,7 @@ const connection = require("./utils/config");
 
 const url = connection.MONGODB_URI;
 
-// MongoDB connection
+
 mongoose
   .connect(url, { useNewUrlParser: true, useUnifiedTopology: true })
   .then(() => {

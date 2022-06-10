@@ -1,11 +1,23 @@
-module.exports = (error, request, response, next) => {
-  //console.error(error.message);
+const ERROR_HANDLERS = {
+  CastError: res => 
+    res.status(400).send({ error: "malformatted id"}),
+  ValidationError: (res, {message}) => 
+    res.status(400).send({ error: message}),
+  JsonWebTokenError: res => 
+    res.status(401).send({ error: "token missing or invalid"}),
+  TokenExpirerError: res =>
+    res.status(401).json({ error: "token expired" }),
 
-  if (error.name === "CastError") {
-    return response.status(400).send({ error: "malformatted id" });
-  } else if (error.name === "ValidationError") {
-    return response.status(400).json({ error: error.message });
+  defaultError: (res, error) => {
+    console.error(error.name);
+    res.status(500).end();
   }
+};
 
+module.exports = (error, request, response, next) => {
+  const handler =
+    ERROR_HANDLERS[error.name] || ERROR_HANDLERS.defaultError;
+
+  handler(response, error);
   next(error);
 };

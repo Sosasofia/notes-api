@@ -1,28 +1,34 @@
 require("./mongo");
-
+require("express-async-errors");
 const express = require("express");
 const app = express();
 const cors = require("cors");
 
 const noteRouter = require("./routes/notes");
 const usersRouter = require("./routes/users");
+const loginRouter = require("./routes/login");
+const middleware = require("./utils/middleware");
 
 
-const notFound = require("./middleware/notFound");
-const errorHandler = require("./middleware/errorHandler");
-
-
-//Middlewares
 app.use(cors());
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+app.use(middleware.requestLogger);
+app.use(middleware.tokenExtractor);
 
 
-//Routes
-app.use("/api", noteRouter);
-app.use("/api", usersRouter);
-
-app.use(notFound);
-app.use(errorHandler);
+app.get("/", (req, res) => {
+  res.send("Working");
+});
 
 
-module.exports = { app };
+app.use("/api/notes", middleware.userExtractor, noteRouter);
+app.use("/api/users", usersRouter);
+app.use("/api/login", loginRouter);
+
+
+app.use(middleware.unknownEndpoint);
+app.use(middleware.errorHandler);
+
+module.exports =  app ;
