@@ -5,7 +5,6 @@ const app = express();
 const cors = require("cors");
 
 const noteRouter = require("./routes/notes");
-const usersRouter = require("./routes/users");
 const loginRouter = require("./routes/login");
 const middleware = require("./utils/middleware");
 
@@ -24,7 +23,6 @@ app.get("/", (req, res) => {
 
 
 app.use("/api/notes", middleware.userExtractor, noteRouter);
-app.use("/api/users", usersRouter);
 app.use("/api/login", loginRouter);
 
 
