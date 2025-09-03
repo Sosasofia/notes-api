@@ -23,16 +23,16 @@ jobs:
                 environment: environment
               });
 
-              if (deployments.length < 2) {
-                console.log(`There are less than 2 deployments in ${environment}, nothing to delete.`);
+              if (deployments.length < 1) {
+                console.log(`There are less than 1 deployment in ${environment}, nothing to delete.`);
                 continue;  
               }
 
-              // Ordenar deployments por fecha (más reciente primero)
+              // Sort deployments by date (most recent first)
               deployments.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
-              // Mantener solo los dos más recientes
-              const deploymentsToDelete = deployments.slice(2);  // Eliminar todo excepto los dos más recientes
+              // Keep only the most recent one
+              const deploymentsToDelete = deployments.slice(1);  // Remove everything except the most recent one
 
               for (const deployment of deploymentsToDelete) {
                 try {
@@ -46,7 +46,6 @@ jobs:
 
                   console.log(`Marked deployment ${deployment.id} as inactive.`);
 
-                  // Luego eliminarlo
                   await github.rest.repos.deleteDeployment({
                     owner: context.repo.owner,
                     repo: context.repo.repo,
