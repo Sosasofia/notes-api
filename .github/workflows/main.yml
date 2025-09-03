@@ -1,0 +1,63 @@
+name: Clean Old Deployments on Tag
+
+on:
+  push:
+    tags:
+      - 'cleanup'
+    branches: 
+      - main
+
+jobs:
+  clean-deployments:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Delete old deployments
+        uses: actions/github-script@v7
+        with: 
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const environments = ['production', 'development', 'Preview']; 
+
+            for (const environment of environments) {
+              const { data: deployments } = await github.rest.repos.listDeployments({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                environment: environment
+              });
+
+              if (deployments.length < 2) {
+                console.log(`There are less than 2 deployments in ${environment}, nothing to delete.`);
+                continue;  
+              }
+
+              // Ordenar deployments por fecha (más reciente primero)
+              deployments.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
+              // Mantener solo los dos más recientes
+              const deploymentsToDelete = deployments.slice(2);  // Eliminar todo excepto los dos más recientes
+
+              for (const deployment of deploymentsToDelete) {
+                try {
+                  // Primero intentar marcarlo como inactivo
+                  await github.rest.repos.createDeploymentStatus({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    deployment_id: deployment.id,
+                    state: 'inactive'
+                  });
+
+                  console.log(`Marked deployment ${deployment.id} as inactive.`);
+
+                  // Luego eliminarlo
+                  await github.rest.repos.deleteDeployment({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    deployment_id: deployment.id
+                  });
+
+                  console.log(`Deleted deployment ${deployment.id} from ${environment}`);
+                } catch (error) {
+                  console.log(`❌ Could not delete deployment ${deployment.id}: ${error.message}`);
+                }
+              }
+            }
